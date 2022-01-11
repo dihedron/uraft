@@ -1,0 +1,70 @@
+version: "3.3"
+
+networks:
+  rqlite:
+
+services:
+  rqlite1:
+    image: rqlite/rqlite:latest
+    command: "-fk -on-disk"
+    environment:
+      NODE_ID: "1"
+      HOSTNAME: "rqlite1"
+    networks:
+      - rqlite
+    ports:
+      - 4011:4001
+      - 4012:4002
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: 20m
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:4011/status"]    
+
+  rqlite2:
+    image: rqlite/rqlite:latest
+    command: "-fk -on-disk -join http://rqlite1:4001"
+    environment:
+      NODE_ID: "2"
+      HOSTNAME: "rqlite2"
+      JOIN_ADDRESS: "rqlite1"
+    networks:
+      - rqlite
+    ports:
+      - 4021:4001
+      - 4022:4002
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: 20m
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:4021/status"]    
+
+  rqlite3:
+    image: rqlite/rqlite:latest
+    command: "-fk -on-disk -join http://rqlite1:4001"
+    environment:
+      NODE_ID: "3"
+      HOSTNAME: "rqlite3"
+      JOIN_ADDRESS: "rqlite1"
+    networks:
+      - rqlite
+    ports:
+      - 4031:4001
+      - 4032:4002
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: 20m
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:4031/status"]    
+
+# to test:
+# $> for i in {1..3}; do curl http://localhost:40${i}1/status | jq '.store.raft.state'; done
