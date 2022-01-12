@@ -1,0 +1,22 @@
+{
+    // Usare IntelliSense per informazioni sui possibili attributi.
+    // Al passaggio del mouse vengono visualizzate le descrizioni degli attributi esistenti.
+    // Per altre informazioni, visitare: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Launch Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "main.go",
+            "args": [
+                "--peer=@tests/uraft/node2.json",
+                "--peer=@tests/uraft/node3.json",
+                "--state=tests/state",
+                "node1"
+            ]
+        }
+    ]
+}

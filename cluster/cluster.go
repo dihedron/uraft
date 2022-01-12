@@ -82,7 +82,7 @@ func New(id string, fsm *raft.FSM, options ...Option) (*Cluster, error) {
 		for _, peer := range c.peers {
 			servers = append(servers, raft.Server{
 				ID:      raft.ServerID(peer.ID),
-				Address: raft.ServerAddress(peer.Address),
+				Address: raft.ServerAddress(peer.Address.String()),
 			})
 		}
 	}

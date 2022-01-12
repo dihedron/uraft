@@ -1,22 +1,24 @@
 package command
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/dihedron/uraft/cluster"
+)
 
 type Options struct {
-
-	// Directory is the directory for Raft cluster state storage.
-	Directory string `short:"d" long:"directory" description:"Raft cluster state storage directory." optional:"yes" default:"./state"`
-
-	// Address is the intra-cluster bind address fro Raft communications.
-	Address string `short:"a" long:"address" description:"Raft intra-cluster address." optional:"yes" default:":8001"`
-
+	// Address is the intra-cluster bind address for Raft communications.
+	Address cluster.Address `short:"a" long:"address" description:"Raft intra-cluster address." optional:"yes" default:":8001"`
 	// Join specified whether the node should join a cluster.
-	Peers []string `short:"p" long:"peer" description:"The address of a peer node in the cluster to join" optional:"yes"`
+	Peers []cluster.Peer `short:"p" long:"peer" description:"The address of a peer node in the cluster to join" optional:"yes"`
+	// State is the directory for Raft cluster state storage.
+	State string `short:"s" long:"state" description:"Raft cluster state storage directory." optional:"yes" default:"./state"`
 }
 
 func (cmd *Options) Execute(args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("no node id specified")
 	}
+	fmt.Printf("starting a node at '%s' (state in directory '%s'), with peers %+v\n", cmd.Address, cmd.State, cmd.Peers)
 	return nil
 }

@@ -1,12 +1,20 @@
 package cluster
 
-import "github.com/dihedron/uraft/unmarshal"
+import (
+	"fmt"
+
+	"github.com/dihedron/uraft/unmarshal"
+)
 
 type Peer struct {
-	ID      string
-	Address string
+	ID      string  `json:"id,omitempty yaml:"id,omitempty`
+	Address Address `json:"address,omitempty yaml:"address,omitempty`
 }
 
 func (p *Peer) UnmarshalFlag(value string) error {
 	return unmarshal.FromFlag(value, p)
+}
+
+func (p Peer) String() string {
+	return fmt.Sprintf("%s@%+v", p.ID, p.Address)
 }

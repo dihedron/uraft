@@ -23,6 +23,13 @@ func WithBindAddress(address string) Option {
 	}
 }
 
+// WithPeer specifies a peer to contact to join the cluster.
+func WithPeer(peer Peer) Option {
+	return func(c *Cluster) {
+		c.peers = append(c.peers, peer)
+	}
+}
+
 // WithPeers specifies the peers to contact to join the cluster.
 func WithPeers(peers ...Peer) Option {
 	return func(c *Cluster) {
