@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 
+	"github.com/dihedron/uraft/cache"
 	"github.com/dihedron/uraft/cluster"
 )
 
@@ -20,5 +21,16 @@ func (cmd *Options) Execute(args []string) error {
 		return fmt.Errorf("no node id specified")
 	}
 	fmt.Printf("starting a node at '%s' (state in directory '%s'), with peers %+v\n", cmd.Address, cmd.State, cmd.Peers)
+
+	fsm := cache.New()
+
+	cluster.New(
+		args[0],
+		fsm,
+		cluster.WithDirectory(cmd.State),
+		cluster.WithBindAddress(cmd.Address.String()),
+		cluster.WithPeers(cmd.Peers...),
+	)
+
 	return nil
 }

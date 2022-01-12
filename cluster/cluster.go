@@ -25,7 +25,7 @@ type Cluster struct {
 }
 
 // New creates a new Cluster, applying all the provided functional options.
-func New(id string, fsm *raft.FSM, options ...Option) (*Cluster, error) {
+func New(id string, fsm raft.FSM, options ...Option) (*Cluster, error) {
 	c := &Cluster{
 		id:    id,
 		peers: []Peer{},
@@ -66,7 +66,7 @@ func New(id string, fsm *raft.FSM, options ...Option) (*Cluster, error) {
 	}
 
 	// instantiate the Raft system
-	c.raft, err = raft.NewRaft(configuration, *fsm, boltDB, boltDB, snapshots, transport)
+	c.raft, err = raft.NewRaft(configuration, fsm, boltDB, boltDB, snapshots, transport)
 	if err != nil {
 		return nil, fmt.Errorf("error creating new raft cluster: %w", err)
 	}

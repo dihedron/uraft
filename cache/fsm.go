@@ -14,8 +14,8 @@ type Cache struct {
 	cache map[string]string
 }
 
-func New() (*Cache, error) {
-	return &Cache{cache: map[string]string{}}, nil
+func New() *Cache {
+	return &Cache{cache: map[string]string{}}
 }
 
 func (c *Cache) Get(key string) (interface{}, bool) {
