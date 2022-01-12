@@ -1,5 +1,7 @@
 package cluster
 
+import "github.com/dihedron/uraft/logging"
+
 // Option is the type for functional options.
 type Option func(*Cluster)
 
@@ -34,5 +36,12 @@ func WithPeer(peer Peer) Option {
 func WithPeers(peers ...Peer) Option {
 	return func(c *Cluster) {
 		c.peers = append(c.peers, peers...)
+	}
+}
+
+// WithLogger specifies a logger.
+func WithLogger(logger logging.Logger) Option {
+	return func(c *Cluster) {
+		c.peers = append(c.peers, peer)
 	}
 }

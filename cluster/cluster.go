@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dihedron/uraft/logging"
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
 	"go.uber.org/zap"
@@ -25,13 +26,15 @@ type Cluster struct {
 	address   string
 	peers     []Peer
 	raft      *raft.Raft
+	logger    logging.Logger
 }
 
 // New creates a new Cluster, applying all the provided functional options.
 func New(id string, fsm raft.FSM, options ...Option) (*Cluster, error) {
 	c := &Cluster{
-		id:    id,
-		peers: []Peer{},
+		id:     id,
+		peers:  []Peer{},
+		logger: NoOpLogger,
 	}
 	for _, option := range options {
 		option(c)
