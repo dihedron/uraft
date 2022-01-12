@@ -42,6 +42,6 @@ func WithPeers(peers ...Peer) Option {
 // WithLogger specifies a logger.
 func WithLogger(logger logging.Logger) Option {
 	return func(c *Cluster) {
-		c.peers = append(c.peers, peer)
+		c.logger = logger
 	}
 }

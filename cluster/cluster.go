@@ -12,7 +12,6 @@ import (
 	"github.com/dihedron/uraft/logging"
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
-	"go.uber.org/zap"
 )
 
 const (
@@ -34,7 +33,7 @@ func New(id string, fsm raft.FSM, options ...Option) (*Cluster, error) {
 	c := &Cluster{
 		id:     id,
 		peers:  []Peer{},
-		logger: NoOpLogger,
+		logger: &logging.NoOpLogger{},
 	}
 	for _, option := range options {
 		option(c)
@@ -49,7 +48,7 @@ func New(id string, fsm raft.FSM, options ...Option) (*Cluster, error) {
 	configuration := raft.DefaultConfig()
 	configuration.LocalID = raft.ServerID(c.id)
 
-	// Setup Raft communication.
+	// setup Raft communication
 	addr, err := net.ResolveTCPAddr("tcp", c.address)
 	if err != nil {
 		return nil, fmt.Errorf("error resolving bind address '%s': %w", c.address, err)
@@ -59,7 +58,7 @@ func New(id string, fsm raft.FSM, options ...Option) (*Cluster, error) {
 		return nil, fmt.Errorf("error creating TCP transport: %w", err)
 	}
 
-	// Create the snapshot store. This allows the Raft to truncate the log.
+	// create the snapshot store; this allows the Raft to truncate the log
 	snapshots, err := raft.NewFileSnapshotStore(c.directory, retainSnapshotCount, os.Stderr)
 	if err != nil {
 		return nil, fmt.Errorf("error creating file snapshot store: %w", err)
@@ -76,6 +75,8 @@ func New(id string, fsm raft.FSM, options ...Option) (*Cluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error creating new raft cluster: %w", err)
 	}
+
+	c.logger.Debug("raft cluster created")
 
 	servers := []raft.Server{
 		{
@@ -115,7 +116,7 @@ func (c *Cluster) Test() {
 
 	// start a ticker so that we're woken up every X milliseconds, regardless
 	ticker := time.NewTicker(LeadershipPollInterval)
-	// zap.S().Debugf("background checker started ticking every %d ms", LeadershipPollInterval)
+	c.logger.Debug("background checker started ticking every %d ms", LeadershipPollInterval)
 	defer ticker.Stop()
 
 	// open the channel to get leader elections
@@ -148,41 +149,41 @@ election_loop:
 	for {
 		select {
 		case election := <-elections:
-			zap.S().Infof("cluster leadership changed (leader: %t)", election)
+			c.logger.Info("cluster leadership changed (leader: %t)", election)
 			leader = election
 			break election_loop
 		case observation := <-observations:
-			//zap.S().Debugf("received observation: %T)", observation.Data)
+			c.logger.Debug("received observation: %T)", observation.Data)
 			switch observation := observation.Data.(type) {
 			case raft.PeerObservation:
-				// zap.S().Debugf("received peer observation (id: %s, address: %s)", observation.Peer.ID, observation.Peer.Address)
+				c.logger.Debug("received peer observation (id: %s, address: %s)", observation.Peer.ID, observation.Peer.Address)
 			case raft.LeaderObservation:
-				// zap.S().Debugf("received leader observation (leader: %s)", observation.Leader)
+				c.logger.Debug("received leader observation (leader: %s)", observation.Leader)
 			case raft.RequestVoteRequest:
-				// zap.S().Debugf("received request vote request observation (leadership transfer: %t, term: %d)", observation.LeadershipTransfer, observation.Term)
+				c.logger.Debug("received request vote request observation (leadership transfer: %t, term: %d)", observation.LeadershipTransfer, observation.Term)
 			case raft.RaftState:
-				// zap.S().Debugf("received raft state observation: %s", observation)
+				c.logger.Debug("received raft state observation: %s", observation)
 			default:
-				// zap.S().Warnf("unhandled observation type: %T", observation)
+				c.logger.Warn("unhandled observation type: %T", observation)
 			}
 		case interrupt := <-interrupts:
-			zap.S().Infof("received interrupt: %d", interrupt)
+			c.logger.Info("received interrupt: %d", interrupt)
 			os.Exit(1)
-		case /*tick :=*/ <-ticker.C:
-			// zap.S().Infof("tick at %s", tick)
+		case tick := <-ticker.C:
+			c.logger.Info("tick at %s", tick)
 			switch c.raft.State() {
 			case raft.Leader:
-				// zap.S().Info("this node is the leader")
+				c.logger.Info("this node is the leader")
 				leader = true
 				break election_loop
 			case raft.Follower:
-				// zap.S().Info("this node is a follower")
+				c.logger.Info("this node is a follower")
 				leader = false
 				break election_loop
 			case raft.Candidate:
-				//zap.S().Info("this node is a candidate")
+				c.logger.Info("this node is a candidate")
 			case raft.Shutdown:
-				//zap.S().Info("raft cluster is shut down")
+				c.logger.Info("raft cluster is shut down")
 			}
 		}
 	}

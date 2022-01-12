@@ -1,0 +1,5 @@
+# Use goreman to run `go get github.com/mattn/goreman`
+setup: mkdir -p store/
+node1: ../../uraft --address=localhost:8001 --state=store/node1 --peer=@node2.json --peer=@node3.json node1 
+node2: ../../uraft --address=localhost:8002 --state=store/node2 --peer=@node1.json --peer=@node3.json node2
+node3: ../../uraft --address=localhost:8003 --state=store/node3 --peer=@node1.json --peer=@node2.json node3
