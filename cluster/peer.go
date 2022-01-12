@@ -7,8 +7,8 @@ import (
 )
 
 type Peer struct {
-	ID      string  `json:"id,omitempty yaml:"id,omitempty`
-	Address Address `json:"address,omitempty yaml:"address,omitempty`
+	ID      string  `json:"id,omitempty" yaml:"id,omitempty"`
+	Address Address `json:"address,omitempty" yaml:"address,omitempty"`
 }
 
 func (p *Peer) UnmarshalFlag(value string) error {

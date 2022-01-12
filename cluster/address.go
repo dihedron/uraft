@@ -7,8 +7,8 @@ import (
 )
 
 type Address struct {
-	Host string `json:"host,omitempty"`
-	Port int    `json:"port,omitempty"`
+	Host string `json:"host,omitempty" yaml:"host,omitempty"`
+	Port int    `json:"port,omitempty" yaml:"port,omitempty"`
 }
 
 func (a Address) String() string {
