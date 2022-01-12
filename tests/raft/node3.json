@@ -2,6 +2,6 @@
     "id":"node3",
     "address" :{
         "host": "localhost",
-        "port": 8003
+        "port": 7003
     }
 }

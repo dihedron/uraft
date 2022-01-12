@@ -5,6 +5,12 @@ import "github.com/dihedron/uraft/logging"
 // Option is the type for functional options.
 type Option func(*Cluster)
 
+func WithBootstrap(value bool) Option {
+	return func(c *Cluster) {
+		c.bootstrap = value
+	}
+}
+
 // WithDirectory specifies the directory where the Raft cluster
 // state is stored.
 func WithDirectory(path string) Option {

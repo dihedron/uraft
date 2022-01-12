@@ -10,6 +10,7 @@ import (
 )
 
 type Options struct {
+	Bootstrap bool `short:"b" long:"bootstrap" description:"Whether to boostrap the cluster." optional:"yes"`
 	// Address is the intra-cluster bind address for Raft communications.
 	Address cluster.Address `short:"a" long:"address" description:"Raft intra-cluster address." optional:"yes" default:"localhost:8001"`
 	// Join specified whether the node should join a cluster.

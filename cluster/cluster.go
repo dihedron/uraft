@@ -24,6 +24,7 @@ type Cluster struct {
 	directory string
 	address   string
 	peers     []Peer
+	bootstrap bool
 	raft      *raft.Raft
 	logger    logging.Logger
 }
@@ -99,13 +100,14 @@ func New(id string, fsm raft.FSM, options ...Option) (*Cluster, error) {
 	}
 	if err := c.raft.BootstrapCluster(cluster).Error(); err != nil {
 		// maybe already bootstrapped??
+		c.logger.Warn("cluster already bootstrapped?: %v", err)
 	}
 
 	return c, err
 }
 
 const (
-	LeadershipPollInterval = time.Duration(500) * time.Millisecond
+	LeadershipPollInterval = time.Duration(500 * time.Millisecond)
 )
 
 func (c *Cluster) Test() {
@@ -116,7 +118,7 @@ func (c *Cluster) Test() {
 
 	// start a ticker so that we're woken up every X milliseconds, regardless
 	ticker := time.NewTicker(LeadershipPollInterval)
-	c.logger.Debug("background checker started ticking every %d ms", LeadershipPollInterval)
+	c.logger.Debug("background checker started ticking every %+v ms", LeadershipPollInterval)
 	defer ticker.Stop()
 
 	// open the channel to get leader elections
@@ -153,7 +155,7 @@ election_loop:
 			leader = election
 			break election_loop
 		case observation := <-observations:
-			c.logger.Debug("received observation: %T)", observation.Data)
+			c.logger.Debug("received observation: %T", observation.Data)
 			switch observation := observation.Data.(type) {
 			case raft.PeerObservation:
 				c.logger.Debug("received peer observation (id: %s, address: %s)", observation.Peer.ID, observation.Peer.Address)
@@ -169,17 +171,16 @@ election_loop:
 		case interrupt := <-interrupts:
 			c.logger.Info("received interrupt: %d", interrupt)
 			os.Exit(1)
-		case tick := <-ticker.C:
-			c.logger.Info("tick at %s", tick)
+		case <-ticker.C:
 			switch c.raft.State() {
 			case raft.Leader:
 				c.logger.Info("this node is the leader")
 				leader = true
-				break election_loop
+				// break election_loop
 			case raft.Follower:
 				c.logger.Info("this node is a follower")
 				leader = false
-				break election_loop
+				// break election_loop
 			case raft.Candidate:
 				c.logger.Info("this node is a candidate")
 			case raft.Shutdown:
@@ -188,4 +189,10 @@ election_loop:
 		}
 	}
 	fmt.Printf("leader: %t\n", leader)
+
+	select {
+	case <-interrupts:
+		c.logger.Info("closing down...")
+		os.Exit(1)
+	}
 }
