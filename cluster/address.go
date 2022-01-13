@@ -2,8 +2,8 @@ package cluster
 
 import (
 	"fmt"
+	"net"
 	"strconv"
-	"strings"
 )
 
 type Address struct {
@@ -16,16 +16,13 @@ func (a Address) String() string {
 }
 
 func (a *Address) UnmarshalFlag(value string) error {
-	tokens := strings.Split(value, ":")
-	if len(tokens) != 2 {
-		return fmt.Errorf("invalid format for address, expected '[<host>]:<port>', got '%s'", value)
-	}
-	host := strings.TrimSpace(tokens[0])
-	port, err := strconv.Atoi(strings.TrimSpace(tokens[1]))
+	host, port, err := net.SplitHostPort(value)
 	if err != nil {
-		return fmt.Errorf("invalid format for port: %w", err)
+		return fmt.Errorf("invalid format for address '%s': %w", value, err)
 	}
 	a.Host = host
-	a.Port = port
+	if a.Port, err = strconv.Atoi(port); err != nil {
+		return fmt.Errorf("invalid format for port '%s': %w", port, err)
+	}
 	return nil
 }

@@ -35,13 +35,10 @@ func init() {
 }
 
 func main() {
-	var (
-		options command.Options
-		parser  = flags.NewParser(&options, flags.Default)
-		args    []string
-		err     error
-	)
-	if args, err = parser.Parse(); err != nil {
+
+	options := command.Commands{}
+
+	if _, err := flags.NewParser(&options, flags.Default).Parse(); err != nil {
 		switch flagsErr := err.(type) {
 		case flags.ErrorType:
 			if flagsErr == flags.ErrHelp {
@@ -54,10 +51,10 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	if err = options.Execute(args); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
-	}
+	// if err = options.Execute(args); err != nil {
+	// 	fmt.Fprintf(os.Stderr, "error: %v\n", err)
+	// 	os.Exit(1)
+	// }
 }
 
 /*

@@ -9,7 +9,7 @@ import (
 	"github.com/dihedron/uraft/logging"
 )
 
-type Options struct {
+type Run struct {
 	Bootstrap bool `short:"b" long:"bootstrap" description:"Whether to boostrap the cluster." optional:"yes"`
 	// Address is the intra-cluster bind address for Raft communications.
 	Address cluster.Address `short:"a" long:"address" description:"Raft intra-cluster address." optional:"yes" default:"localhost:8001"`
@@ -19,9 +19,9 @@ type Options struct {
 	State string `short:"s" long:"state" description:"Raft cluster state storage directory." optional:"yes" default:"./state"`
 }
 
-func (cmd *Options) Execute(args []string) error {
+func (cmd *Run) Execute(args []string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("no node id specified")
+		return fmt.Errorf("no node id specified: (%v)", args)
 	}
 	fmt.Printf("starting a node at '%s' (state in directory '%s'), with peers %+v\n", cmd.Address, cmd.State, cmd.Peers)
 
