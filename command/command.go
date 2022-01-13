@@ -36,6 +36,7 @@ func (cmd *Options) Execute(args []string) error {
 		cluster.WithBindAddress(cmd.Address.String()),
 		cluster.WithPeers(cmd.Peers...),
 		cluster.WithLogger(logger),
+		cluster.WithBootstrap(cmd.Bootstrap),
 	)
 	if err != nil {
 		return fmt.Errorf("error creating new cluster: %w", err)

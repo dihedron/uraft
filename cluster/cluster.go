@@ -79,30 +79,29 @@ func New(id string, fsm raft.FSM, options ...Option) (*Cluster, error) {
 
 	c.logger.Debug("raft cluster created")
 
-	servers := []raft.Server{
-		{
-			ID:      raft.ServerID(c.id),
-			Address: transport.LocalAddr(),
-		},
-	}
-
-	if len(c.peers) > 0 {
-		for _, peer := range c.peers {
-			servers = append(servers, raft.Server{
-				ID:      raft.ServerID(peer.ID),
-				Address: raft.ServerAddress(peer.Address.String()),
-			})
+	if c.bootstrap {
+		servers := []raft.Server{
+			{
+				ID:      raft.ServerID(c.id),
+				Address: transport.LocalAddr(),
+			},
+		}
+		if len(c.peers) > 0 {
+			for _, peer := range c.peers {
+				servers = append(servers, raft.Server{
+					ID:      raft.ServerID(peer.ID),
+					Address: raft.ServerAddress(peer.Address.String()),
+				})
+			}
+		}
+		cluster := raft.Configuration{
+			Servers: servers,
+		}
+		if err := c.raft.BootstrapCluster(cluster).Error(); err != nil {
+			// maybe already bootstrapped??
+			c.logger.Warn("cluster already bootstrapped?: %v", err)
 		}
 	}
-
-	cluster := raft.Configuration{
-		Servers: servers,
-	}
-	if err := c.raft.BootstrapCluster(cluster).Error(); err != nil {
-		// maybe already bootstrapped??
-		c.logger.Warn("cluster already bootstrapped?: %v", err)
-	}
-
 	return c, err
 }
 
@@ -129,7 +128,7 @@ func (c *Cluster) Test() {
 	observer := raft.NewObserver(observations, true, nil)
 	c.raft.RegisterObserver(observer)
 
-	leader := false
+	// leader := false
 
 	// at the very beginning, only the leader receives a ledership election
 	// notification via the elections channel; the followers know nothing
@@ -147,13 +146,13 @@ func (c *Cluster) Test() {
 	// little time inside of it; after having bootstrapped the cluster, leader
 	// elections, demotions and changes will flow into the leader and follower
 	// loops and will be handled there
-election_loop:
+	// election_loop:
 	for {
 		select {
 		case election := <-elections:
 			c.logger.Info("cluster leadership changed (leader: %t)", election)
-			leader = election
-			break election_loop
+			// leader = election
+			// break election_loop
 		case observation := <-observations:
 			c.logger.Debug("received observation: %T", observation.Data)
 			switch observation := observation.Data.(type) {
@@ -175,11 +174,11 @@ election_loop:
 			switch c.raft.State() {
 			case raft.Leader:
 				c.logger.Info("this node is the leader")
-				leader = true
+				// leader = true
 				// break election_loop
 			case raft.Follower:
 				c.logger.Info("this node is a follower")
-				leader = false
+				// leader = false
 				// break election_loop
 			case raft.Candidate:
 				c.logger.Info("this node is a candidate")
@@ -188,11 +187,11 @@ election_loop:
 			}
 		}
 	}
-	fmt.Printf("leader: %t\n", leader)
+	// fmt.Printf("leader: %t\n", leader)
 
-	select {
-	case <-interrupts:
-		c.logger.Info("closing down...")
-		os.Exit(1)
-	}
+	// select {
+	// case <-interrupts:
+	// 	c.logger.Info("closing down...")
+	// 	os.Exit(1)
+	// }
 }
